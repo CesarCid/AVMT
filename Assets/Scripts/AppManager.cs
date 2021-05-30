@@ -4,10 +4,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using static GameMode;
 
-public class GameManager : MonoBehaviour
+public class AppManager : MonoBehaviour
 {
-    private static GameManager gm;
-    public static GameManager Instance => gm;
+    private static AppManager am;
+    public static AppManager Instance => am;
 
     public enum Scenes { System, Menu, Gameplay }
     
@@ -19,8 +19,8 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        if (gm == null)
-            gm = this;
+        if (am == null)
+            am = this;
     }
 
     void Start()

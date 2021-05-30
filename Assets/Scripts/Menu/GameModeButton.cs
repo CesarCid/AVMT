@@ -9,6 +9,6 @@ public class GameModeButton : MonoBehaviour
 
     public void LoadGameMode()
     {
-        GameManager.Instance.LoadMode(gameMode);
+        AppManager.Instance.LoadMode(gameMode);
     }
 }

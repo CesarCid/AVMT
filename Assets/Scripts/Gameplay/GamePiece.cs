@@ -3,25 +3,27 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class GamePiece : MonoBehaviour, IPointerClickHandler
+public class GamePiece : MonoBehaviour
 {
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        if (eventData.button != PointerEventData.InputButton.Left)
-            return;
+    public static float PieceSize = 2.56f;
+    public static float PieceHalfSize = 1.28f;
+    
+    public enum PieceState { Unselected, Selected, Moving, Breaking }
 
-        Debug.Log("[GamePiece] OnPointerClick");
+
+    #region Mouse Input Debug
+
+#if UNITY_EDITOR
+    private void OnMouseDown()
+    {
+        TouchController.Instance.DebugOnMouseDown();
     }
 
-    // Start is called before the first frame update
-    void Start()
+    private void OnMouseUp()
     {
-        
+        TouchController.Instance.DebugOnMouseUp();
     }
+#endif
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    #endregion
 }
