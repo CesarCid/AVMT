@@ -57,13 +57,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\AppManager.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\GameBoard.cs" />
     <Compile Include="Assets\Scripts\ScriptableObjects\GameMode.cs" />
     <Compile Include="Assets\Scripts\Gameplay\GamePiece.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\GamePiecesController.cs" />
     <Compile Include="Assets\Scripts\InputManager.cs" />
     <Compile Include="Assets\Scripts\UI\StretchSprite.cs" />
+    <Compile Include="Assets\Scripts\ScriptableObjects\GamePieceType.cs" />
     <Compile Include="Assets\Scripts\Gameplay\TouchController.cs" />
     <Compile Include="Assets\Scripts\Menu\GameModeButton.cs" />
-    <Compile Include="Assets\Scripts\Gameplay\GamePiecesController.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\BoardSlot.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Audio\Music\Attribution.txt" />

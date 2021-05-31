@@ -67,7 +67,6 @@ public class TouchController : MonoBehaviour
         }
     }
 
-
     bool GetCollidingInteractable(Vector2 screenPosition, out GameObject interactable)
     {
         //Debug.Log("[TouchController] CheckCollision on screenPosition: "+ screenPosition);

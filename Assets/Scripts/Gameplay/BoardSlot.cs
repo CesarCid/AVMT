@@ -3,20 +3,27 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class GamePiece : MonoBehaviour
+public class BoardSlot : MonoBehaviour
 {
     [SerializeField]
-    private SpriteRenderer spriteRenderer;
+    private GamePiece piece;
+    public GamePiece Piece 
+    { 
+        get => piece; 
+        set 
+        {
+            if (piece != null)
+                return;
 
-    [SerializeField]
-    private GamePieceType type;
-    public GamePieceType Type => type;
+            piece = value;
+        } 
+    }
 
-    public enum PieceState { Unselected, Selected, Moving, Breaking }
+    public Vector2Int index = default;
 
     private void Awake()
     {
-        spriteRenderer.sprite = type.Sprite;
+
     }
 
     #region Mouse Input Debug
