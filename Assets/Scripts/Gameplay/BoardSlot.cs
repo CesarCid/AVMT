@@ -3,42 +3,41 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class BoardSlot : MonoBehaviour
+namespace AVMT.Gameplay
 {
-    [SerializeField]
-    private GamePiece piece;
-    public GamePiece Piece 
-    { 
-        get => piece; 
-        set 
-        {
-            if (piece != null)
-                return;
-
-            piece = value;
-        } 
-    }
-
-    public Vector2Int index = default;
-
-    private void Awake()
+    public class BoardSlot : MonoBehaviour
     {
+        [SerializeField]
+        private GamePiece piece;
+        public GamePiece Piece
+        {
+            get => piece;
+            set
+            {
+                if (piece != null)
+                    return;
 
-    }
+                piece = value;
+            }
+        }
 
-    #region Mouse Input Debug
+        public Vector2Int index = default;
+
+
+        #region Mouse Input Debug
 
 #if UNITY_EDITOR
-    private void OnMouseDown()
-    {
-        TouchController.Instance.DebugOnMouseDown();
-    }
+        private void OnMouseDown()
+        {
+            TouchController.Instance.DebugOnMouseDown();
+        }
 
-    private void OnMouseUp()
-    {
-        TouchController.Instance.DebugOnMouseUp();
-    }
+        private void OnMouseUp()
+        {
+            TouchController.Instance.DebugOnMouseUp();
+        }
 #endif
 
-    #endregion
+        #endregion
+    }
 }

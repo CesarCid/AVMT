@@ -2,13 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameModeButton : MonoBehaviour
+namespace AVMT
 {
-    [SerializeField]
-    private GameMode gameMode = default;
-
-    public void LoadGameMode()
+    public class GameModeButton : MonoBehaviour
     {
-        AppManager.Instance.LoadMode(gameMode);
+        [SerializeField]
+        private GameMode gameMode = default;
+
+        public void LoadGameMode()
+        {
+            AppManager.Instance.LoadMode(gameMode);
+        }
     }
 }

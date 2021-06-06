@@ -3,35 +3,38 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class GamePiece : MonoBehaviour
+namespace AVMT.Gameplay
 {
-    [SerializeField]
-    private SpriteRenderer spriteRenderer;
-
-    [SerializeField]
-    private GamePieceType type;
-    public GamePieceType Type => type;
-
-    public enum PieceState { Unselected, Selected, Moving, Breaking }
-
-    private void Awake()
+    public class GamePiece : MonoBehaviour
     {
-        spriteRenderer.sprite = type.Sprite;
-    }
+        [SerializeField]
+        private SpriteRenderer spriteRenderer;
 
-    #region Mouse Input Debug
+        [SerializeField]
+        private GamePieceType type;
+        public GamePieceType Type => type;
+
+        public enum PieceState { Unselected, Selected, Moving, Breaking }
+
+        private void Awake()
+        {
+            spriteRenderer.sprite = type.Sprite;
+        }
+
+        #region Mouse Input Debug
 
 #if UNITY_EDITOR
-    private void OnMouseDown()
-    {
-        TouchController.Instance.DebugOnMouseDown();
-    }
+        private void OnMouseDown()
+        {
+            TouchController.Instance.DebugOnMouseDown();
+        }
 
-    private void OnMouseUp()
-    {
-        TouchController.Instance.DebugOnMouseUp();
-    }
+        private void OnMouseUp()
+        {
+            TouchController.Instance.DebugOnMouseUp();
+        }
 #endif
 
-    #endregion
+        #endregion
+    }
 }

@@ -2,66 +2,69 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using static GameMode;
+using static AVMT.GameMode;
 
-public class AppManager : MonoBehaviour
+namespace AVMT
 {
-    private static AppManager am;
-    public static AppManager Instance => am;
-
-    public enum Scenes { System, Menu, Gameplay }
-    
-    private GameMode activeMode;
-    public GameMode ActiveMode => activeMode;
-
-    [SerializeField]
-    private GameMode startingMode;
-
-    private void Awake()
+    public class AppManager : MonoBehaviour
     {
-        if (am == null)
-            am = this;
-    }
+        private static AppManager am;
+        public static AppManager Instance => am;
 
-    void Start()
-    {
-        LoadMode(startingMode);
-    }
+        public enum Scenes { System, Menu, Gameplay }
 
-    public void LoadMode(GameMode mode) 
-    {
-        if (mode == activeMode)
-            return;
-        
-        if (activeMode != null)
-            UnloadMode(activeMode);
+        private GameMode activeMode;
+        public GameMode ActiveMode => activeMode;
 
-        LoadScene(mode.Scene);
-        activeMode = mode;
-    }
+        [SerializeField]
+        private GameMode startingMode;
 
-    private void UnloadMode(GameMode mode) 
-    {
-        UnloadScene(mode.Scene);
-    }
+        private void Awake()
+        {
+            if (am == null)
+                am = this;
+        }
 
-    private void LoadScene (Scenes scene)
-    {
-        int sceneIndex = (int)scene;
+        void Start()
+        {
+            LoadMode(startingMode);
+        }
 
-        if (SceneManager.GetSceneByBuildIndex(sceneIndex).isLoaded)
-            return;
+        public void LoadMode(GameMode mode)
+        {
+            if (mode == activeMode)
+                return;
 
-        SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Additive);
-    }
+            if (activeMode != null)
+                UnloadMode(activeMode);
 
-    private void UnloadScene(Scenes scene)
-    {
-        int sceneIndex = (int)scene;
+            LoadScene(mode.Scene);
+            activeMode = mode;
+        }
 
-        if (SceneManager.GetSceneByBuildIndex(sceneIndex).isLoaded == false)
-            return;
+        private void UnloadMode(GameMode mode)
+        {
+            UnloadScene(mode.Scene);
+        }
 
-        SceneManager.UnloadSceneAsync(sceneIndex);
+        private void LoadScene(Scenes scene)
+        {
+            int sceneIndex = (int)scene;
+
+            if (SceneManager.GetSceneByBuildIndex(sceneIndex).isLoaded)
+                return;
+
+            SceneManager.LoadSceneAsync(sceneIndex, LoadSceneMode.Additive);
+        }
+
+        private void UnloadScene(Scenes scene)
+        {
+            int sceneIndex = (int)scene;
+
+            if (SceneManager.GetSceneByBuildIndex(sceneIndex).isLoaded == false)
+                return;
+
+            SceneManager.UnloadSceneAsync(sceneIndex);
+        }
     }
 }
