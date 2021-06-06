@@ -15,11 +15,33 @@ namespace AVMT.Gameplay
         public GamePieceType Type => type;
 
         public enum PieceState { Unselected, Selected, Moving, Breaking }
+        private PieceState state = PieceState.Unselected;
 
         private void Awake()
         {
             spriteRenderer.sprite = type.Sprite;
         }
+
+        public void Select()
+        {
+            if (state == PieceState.Selected)
+            {
+                Deselect();
+                return;
+            }
+
+            state = PieceState.Selected;
+            spriteRenderer.color = Color.gray;
+        }
+
+        public void Deselect()
+        {
+            state = PieceState.Unselected;
+            spriteRenderer.color = Color.white;
+        }
+
+
+
 
         #region Mouse Input Debug
 

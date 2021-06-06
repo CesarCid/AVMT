@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -39,27 +40,50 @@ namespace AVMT.Gameplay
                 for (int x = 0; x < GameBoard.BoardLenght.x; x++)
                 {
                     List<GamePieceType> exceptions = new List<GamePieceType>();
-                    /*
-                    if (gameBoard.GetMatchesInLine(y, out List<List<int>> lineMatches))
+
+                    if (x > 1)
                     {
-                        foreach(List<int> list in lineMatches)
+                        if (gameBoard.Slots[x - 1, y].piece.Type == gameBoard.Slots[x - 2, y].piece.Type)
                         {
-                            exceptions.Add(gameBoard.Slots[list[0], y].Piece.Type);
+                            exceptions.Add(gameBoard.Slots[x - 1, y].piece.Type);
                         }
                     }
 
-                    if (gameBoard.GetMatchesInColumn(x, out List<List<int>> columnMatches))
+                    if (y > 1)
                     {
-                        foreach (List<int> list in columnMatches)
+                        if (gameBoard.Slots[x, y - 1].piece.Type == gameBoard.Slots[x, y - 2].piece.Type)
                         {
-                            exceptions.Add(gameBoard.Slots[x, list[0]].Piece.Type);
+                            exceptions.Add(gameBoard.Slots[x, y - 1].piece.Type);
                         }
                     }
-                    */
+
                     CreatePiece(GetRandomPieceType(exceptions), gameBoard.Slots[x, y]);
                 }
             }
         }
+
+        public void UpdateAvailableMoves()
+        {
+            for (int y = 0; y < GameBoard.BoardLenght.y; y++)
+            {
+                for (int x = 0; x < GameBoard.BoardLenght.x; x++)
+                {
+                    Vector2Int currentSlot = new Vector2Int(x, y);
+
+                    foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+                    {
+                        if (gameBoard.GetMatchesInLineAfterMovement(currentSlot, direction, out List<List<int>> lineMatches) ||
+                            gameBoard.GetMatchesInColumnAfterMovement(currentSlot, direction, out List<List<int>> columnMatches))
+                        {
+                            gameBoard.Slots[x, y].AddAvailableMove(direction);
+                            Vector2Int movedSlot = currentSlot + GameBoard.GetDirectionVector(direction);
+                            gameBoard.Slots[movedSlot.x, movedSlot.y].AddAvailableMove(GameBoard.GetOppositeDiretion(direction));
+                        }
+                    }
+                }
+            }
+        }
+
 
         private GamePieceType GetRandomPieceType()
         {
@@ -69,20 +93,29 @@ namespace AVMT.Gameplay
         {
             IEnumerable<GamePieceType> availablePieces = gamePieces.Except(exceptions);
 
-            return availablePieces.ElementAt(Random.Range(0, availablePieces.Count()));
+            return availablePieces.ElementAt(UnityEngine.Random.Range(0, availablePieces.Count()));
         }
 
 
         private GameObject CreatePiece(GamePieceType type, BoardSlot slotParent)
         {
-            GameObject piece = GameObject.Instantiate(type.Prefab, slotParent.transform);
-            slotParent.Piece = piece.GetComponent<GamePiece>();
+            GameObject piece = Instantiate(type.Prefab, slotParent.transform);
+            slotParent.piece = piece.GetComponent<GamePiece>();
             return piece;
         }
+
+        BoardSlot preSelectedSlot = null;
+        BoardSlot selectedSlot = null;
 
         private void OnPieceTouchDown(GameObject go)
         {
             Debug.Log("[GamePiecesController] OnPieceTouchDown | piece: " + go.name);
+            BoardSlot slot = go.GetComponent<BoardSlot>();
+
+            if (slot != null)
+            {
+                preSelectedSlot = slot;
+            }
         }
 
         private void OnPieceTouchUp(GameObject go)
@@ -92,38 +125,56 @@ namespace AVMT.Gameplay
 
             if (slot != null)
             {
-                List<List<int>> matches;
-                if (gameBoard.GetMatchesInColumn(slot.index.x, out matches)) 
+                if (preSelectedSlot == slot)
                 {
-                    Debug.Log(matches.Count + " matches");
+                    SelectSlot(slot);
                 }
-
-                if (gameBoard.GetMatchesInColumnAfterMovement(slot.index, Direction.Right, out matches))
-                {
-                    Debug.Log(matches.Count + " column matches after moving to the right");
-                }
-
-                if (gameBoard.GetMatchesInLineAfterMovement(slot.index, Direction.Right, out matches))
-                {
-                    Debug.Log(matches.Count + " line matches after moving to the right");
-                }
-
-                if (gameBoard.GetMatchesInColumnAfterMovement(slot.index, Direction.Up, out matches))
-                {
-                    Debug.Log(matches.Count + " column matches after moving up");
-                }
-
-                if (gameBoard.GetMatchesInLineAfterMovement(slot.index, Direction.Up, out matches))
-                {
-                    Debug.Log(matches.Count + " line matches after moving up");
-                }
-
-                //foreach (var result in gameBoard.EvaluateMatchesInAllDirections(slot.index))
-                //    Debug.Log(result);
-                //Debug.Log(gameBoard.EvaluatePossibleMatchesInAllNeighbours(slot.index, slot.Piece.Type));
-
-
             }
+
+            preSelectedSlot = null;
+        }
+
+        private void SelectSlot(BoardSlot slot)
+        {
+            if (selectedSlot != null)
+            {
+                TryMovePiece(selectedSlot, slot);
+
+                DeselectSlot(selectedSlot);
+            }
+
+            selectedSlot = slot;
+            slot.Select();
+        }
+
+        private void DeselectSlot(BoardSlot slot)
+        {
+            slot.Deselect();
+            selectedSlot = null;
+        }
+
+        private bool TryMovePiece(BoardSlot origin, BoardSlot target) 
+        {
+            Vector2Int movementDelta = origin.index - target.index;
+            
+            if (movementDelta.magnitude > 1)
+            {
+                return false;
+            }
+
+            if (origin.GetAvailableMove(GameBoard.GetDirectionFromVector(movementDelta)) == false)
+            {
+                return false;
+            }
+
+            /*
+            GamePiece originPiece = origin.piece;
+            GamePiece targetPiece = target.piece;
+
+            origin.piece = targetPiece;
+            target.piece = originPiece;
+            */
+            return true;
         }
     }
 }

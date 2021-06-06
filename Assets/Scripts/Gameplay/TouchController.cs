@@ -97,7 +97,7 @@ namespace AVMT
         }
         public void DebugOnMouseDown()
         {
-            Debug.Log("[TouchController] DebugOnMouseDown");
+            //Debug.Log("[TouchController] DebugOnMouseDown");
 
             if (GetCollidingInteractable(Input.mousePosition, out GameObject go))
                 TouchedDownOnInteractable?.Invoke(go);
@@ -111,7 +111,7 @@ namespace AVMT
 
         public void DebugOnMouseUp()
         {
-            Debug.Log("[TouchController] DebugOnMouseUp");
+            //Debug.Log("[TouchController] DebugOnMouseUp");
 
             if (GetCollidingInteractable(Input.mousePosition, out GameObject go))
                 TouchedUpOnInteractable?.Invoke(go);

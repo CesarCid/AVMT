@@ -8,7 +8,7 @@ namespace AVMT.Gameplay
 
     public class GameBoard : MonoBehaviour
     {
-        private static int minMatch = 3;
+        private const int GameMatchCount = 3;
 
         public static float SlotSize = 2.56f;
         public static float SlotHalfSize = 1.28f;
@@ -50,18 +50,17 @@ namespace AVMT.Gameplay
 
         public bool GetMatchesInColumnAfterMovement(Vector2Int slot, Direction movementDirection, out List<List<int>> matchIndexes) 
         {
-            Vector2Int movedSlot = slot + GetDirectionVector(movementDirection);
-            int columnToLook = movedSlot.x;
-
-            if(columnToLook < 0 || columnToLook > BoardLenght.x)
+            if (IsValidMovement(slot, movementDirection) == false)
             {
                 matchIndexes = new List<List<int>>();
                 return false;
             }
 
-            GamePieceType[] column = GetColumnTypes(columnToLook);
+            Vector2Int movedSlot = slot + GetDirectionVector(movementDirection);
 
-            GamePieceType movingPieceType = slots[slot.x, slot.y].Piece.Type;
+            GamePieceType[] column = GetColumnTypes(movedSlot.x);
+
+            GamePieceType movingPieceType = slots[slot.x, slot.y].piece.Type;
 
             if (GetDirectionAxis(movementDirection) == Axis.Vertical)
             {
@@ -76,18 +75,17 @@ namespace AVMT.Gameplay
 
         public bool GetMatchesInLineAfterMovement(Vector2Int slot, Direction movementDirection, out List<List<int>> matchIndexes)
         {
-            Vector2Int movedSlot = slot + GetDirectionVector(movementDirection);
-            int lineToLook = movedSlot.y;
-
-            if (lineToLook < 0 || lineToLook > BoardLenght.y)
+            if (IsValidMovement(slot, movementDirection) == false)
             {
                 matchIndexes = new List<List<int>>();
                 return false;
             }            
 
-            GamePieceType[] line = GetLineTypes(lineToLook);
+            Vector2Int movedSlot = slot + GetDirectionVector(movementDirection);
 
-            GamePieceType movingPieceType = slots[slot.x, slot.y].Piece.Type;
+            GamePieceType[] line = GetLineTypes(movedSlot.y);
+
+            GamePieceType movingPieceType = slots[slot.x, slot.y].piece.Type;
             
             if (GetDirectionAxis(movementDirection) == Axis.Horizontal)
             {
@@ -108,62 +106,47 @@ namespace AVMT.Gameplay
         public bool GetMatchesInLine(int lineIndex, out List<List<int>> matchIndexes)
         {
             return EvaluateMatch(GetLineTypes(lineIndex), out matchIndexes);
-        }
+        }        
 
-        private bool EvaluateMatch(GamePieceType[] sequence, out List<List<int>> matchIndexes)
+        private bool EvaluateMatch(GamePieceType[] sequence, out List<List<int>> matchIndexes, int minMatchCount = GameMatchCount)
         {
-            int matchCount = 1;
             matchIndexes = new List<List<int>>();
 
             bool matchFound = false;
-            int firstFoundIndex = 0;
-            GamePieceType lastFoundType = null;
 
-            //TODO: change to a "look-ahead for" to prevent code copying outside the for
-            for (int index = 0; index < sequence.Length; index++) 
+            for (int index = 0; index < sequence.Length; index++)
             {
-                if (lastFoundType == sequence[index])
-                {
-                    matchCount++;
-                    if (firstFoundIndex == 0)
-                    {
-                        firstFoundIndex = index - 1;
-                    }
-                }
-                else 
-                {
-                    if (matchCount >= minMatch)
-                    {
-                        List<int> match = new List<int>();
-                        for (int matchIndex = firstFoundIndex; matchIndex < firstFoundIndex + matchCount; matchIndex++)
-                        {
-                            match.Add(matchIndex);
-                        }
-                        matchIndexes.Add(match);
-                        matchFound = true;
-                    }
+                if (sequence[index] == null)
+                    break;
 
-                    matchCount = 1;
-                    firstFoundIndex = 0;
-                }
-
-                lastFoundType = sequence[index];
-            }
-
-            if (matchCount >= minMatch)
-            {
+                int lookAheadIndex;
+                GamePieceType foundType = sequence[index];
                 List<int> match = new List<int>();
-                for (int matchIndex = firstFoundIndex; matchIndex < firstFoundIndex + matchCount; matchIndex++)
+                match.Add(index);
+
+                for (lookAheadIndex = index + 1; lookAheadIndex < sequence.Length;)
                 {
-                    match.Add(matchIndex);
+                    if (foundType != sequence[lookAheadIndex])
+                    {
+                        break;
+                    }
+
+                    match.Add(lookAheadIndex);
+                    lookAheadIndex++;
                 }
-                matchIndexes.Add(match);
-                matchFound = true;
+
+                if (match.Count >= minMatchCount)
+                {
+                    matchIndexes.Add(match);
+                    matchFound = true;
+                    index = lookAheadIndex;
+                }
             }
 
             return matchFound;
         }
 
+        #region aux
         private GamePieceType[] GetColumnTypes (int columnIndex)
         {
             int verticalLenght = slots.GetLength((int)Axis.Vertical);
@@ -172,12 +155,12 @@ namespace AVMT.Gameplay
 
             for (int i = 0; i < verticalLenght; i++) 
             {
-                /*if(slots[columnIndex, i].Piece == null)
+                if(slots[columnIndex, i].piece == null)
                 {
                     break;
-                }*/
+                }
 
-                column[i] = slots[columnIndex, i].Piece.Type;
+                column[i] = slots[columnIndex, i].piece.Type;
             }
 
             return column;
@@ -191,12 +174,12 @@ namespace AVMT.Gameplay
 
             for (int i = 0; i < horizontalLenght; i++)
             {
-                /*if (slots[i, lineIndex].Piece == null)
+                if (slots[i, lineIndex].piece == null)
                 {
                     break;
-                }*/
+                }
 
-                line[i] = slots[i, lineIndex].Piece.Type;
+                line[i] = slots[i, lineIndex].piece.Type;
             }
 
             return line;
@@ -205,6 +188,32 @@ namespace AVMT.Gameplay
         public static Vector2Int GetDirectionVector (Direction direction)
         {
             return directionVector[(int)direction];
+        }
+
+        public static Direction GetDirectionFromVector(Vector2Int vector)
+        {
+            if (Math.Abs(vector.x) > 0)
+            {
+                if (vector.x > 0)
+                {
+                    return Direction.Right;
+                }
+                else
+                {
+                    return Direction.Left;
+                }
+            }
+            else
+            {
+                if (vector.y > 0)
+                {
+                    return Direction.Up;
+                }
+                else
+                {
+                    return Direction.Down;
+                }
+            }
         }
 
         public static Direction GetOppositeDiretion(Direction direction)
@@ -216,5 +225,17 @@ namespace AVMT.Gameplay
         {
             return (direction == Direction.Right || direction == Direction.Left) ? Axis.Horizontal : Axis.Vertical;
         }
+
+        private static bool IsValidMovement (Vector2Int slot, Direction movementDirection)
+        {
+            Vector2Int movedSlot = slot + GetDirectionVector(movementDirection);
+
+            if (movedSlot.x < 0 || movedSlot.x >= BoardLenght.x || movedSlot.y < 0 || movedSlot.y >= BoardLenght.y)
+            {
+                return false;
+            }
+            return true;
+        }
+        #endregion
     }
 }

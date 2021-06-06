@@ -30,6 +30,7 @@ namespace AVMT.Gameplay
         private void StartRound() 
         {
             piecesController.PopulateBoard();
+            piecesController.UpdateAvailableMoves();
         }
     }
 }

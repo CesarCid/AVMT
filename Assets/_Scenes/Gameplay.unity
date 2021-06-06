@@ -309,10 +309,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1705921704310772556, guid: d3d23dae2440bf94c842c839f0a1c8fe, type: 3}
-      propertyPath: gameBoard
-      value: 
-      objectReference: {fileID: 6586980792881991013}
     - target: {fileID: 1705921704310772557, guid: d3d23dae2440bf94c842c839f0a1c8fe, type: 3}
       propertyPath: m_Name
       value: Gameplay
@@ -392,14 +388,3 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 905e43cae519bb747ab1211c4607185d, type: 3}
---- !u!114 &6586980792881991013 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1542823307115553668, guid: 905e43cae519bb747ab1211c4607185d, type: 3}
-  m_PrefabInstance: {fileID: 6586980792881991012}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ddaf798e240e33d4d82beef5a74ebcd0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
