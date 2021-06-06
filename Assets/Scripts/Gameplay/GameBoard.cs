@@ -29,6 +29,9 @@ namespace AVMT.Gameplay
         private BoardSlot[,] slots = new BoardSlot[BoardLenght.x, BoardLenght.y];
         public BoardSlot[,] Slots { get => slots; }
 
+        public List<int> dirtyLines = new List<int>();
+        public List<int> dirtyColumns = new List<int>();
+
         private void Awake()
         {
             SetupSlots();
@@ -60,7 +63,7 @@ namespace AVMT.Gameplay
 
             GamePieceType[] column = GetColumnTypes(movedSlot.x);
 
-            GamePieceType movingPieceType = slots[slot.x, slot.y].piece.Type;
+            GamePieceType movingPieceType = slots[slot.x, slot.y].Piece.Type;
 
             if (GetDirectionAxis(movementDirection) == Axis.Vertical)
             {
@@ -85,7 +88,7 @@ namespace AVMT.Gameplay
 
             GamePieceType[] line = GetLineTypes(movedSlot.y);
 
-            GamePieceType movingPieceType = slots[slot.x, slot.y].piece.Type;
+            GamePieceType movingPieceType = slots[slot.x, slot.y].Piece.Type;
             
             if (GetDirectionAxis(movementDirection) == Axis.Horizontal)
             {
@@ -155,12 +158,12 @@ namespace AVMT.Gameplay
 
             for (int i = 0; i < verticalLenght; i++) 
             {
-                if(slots[columnIndex, i].piece == null)
+                if(slots[columnIndex, i].Piece == null)
                 {
                     break;
                 }
 
-                column[i] = slots[columnIndex, i].piece.Type;
+                column[i] = slots[columnIndex, i].Piece.Type;
             }
 
             return column;
@@ -174,12 +177,12 @@ namespace AVMT.Gameplay
 
             for (int i = 0; i < horizontalLenght; i++)
             {
-                if (slots[i, lineIndex].piece == null)
+                if (slots[i, lineIndex].Piece == null)
                 {
                     break;
                 }
 
-                line[i] = slots[i, lineIndex].piece.Type;
+                line[i] = slots[i, lineIndex].Piece.Type;
             }
 
             return line;

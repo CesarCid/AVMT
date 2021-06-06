@@ -14,7 +14,7 @@ namespace AVMT.Gameplay
         private GamePieceType type;
         public GamePieceType Type => type;
 
-        public enum PieceState { Unselected, Selected, Moving, Breaking }
+        public enum PieceState { Unselected, Selected, Moving }
         private PieceState state = PieceState.Unselected;
 
         private void Awake()
@@ -40,7 +40,11 @@ namespace AVMT.Gameplay
             spriteRenderer.color = Color.white;
         }
 
-
+        public void MoveTo(BoardSlot slot) 
+        {
+            transform.parent = slot.transform;
+            transform.localPosition = Vector3.zero;
+        }
 
 
         #region Mouse Input Debug

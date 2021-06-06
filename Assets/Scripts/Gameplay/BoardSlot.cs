@@ -7,14 +7,25 @@ namespace AVMT.Gameplay
 {
     public class BoardSlot : MonoBehaviour
     {
-        public GamePiece piece;
+        private GamePiece piece;
+        public GamePiece Piece
+        {
+            get => piece;
+            set 
+            {
+                piece = value;
+                piece.MoveTo(this);
+            } 
+        }
 
         public Vector2Int index;
 
         private bool[] availableMoves = new bool[4];
 
-        //private List<Direction> availableMoves;
-        //public List<Direction> AvailableMoves => availableMoves;
+        public void Break()
+        {
+            ClearPiece();
+        }
 
         public void Select()
         {
@@ -31,10 +42,23 @@ namespace AVMT.Gameplay
             return availableMoves[(int)direction];
         }
 
-        public void AddAvailableMove(Direction direction)
+        public void SetAvailableMove(Direction direction)
         {
             availableMoves[(int)direction] = true;
         }
+
+        public void ClearPiece()
+        {
+            Destroy(Piece.transform);
+            ClearAvailableMoves();
+        }
+
+        public void ClearAvailableMoves()
+        {
+            availableMoves.Initialize();
+        }
+
+
 
         #region Mouse Input Debug
 
