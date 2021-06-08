@@ -22,10 +22,7 @@ namespace AVMT.Gameplay
 
         private bool[] availableMoves = new bool[4];
 
-        public void Break()
-        {
-            ClearPiece();
-        }
+
 
         public void Select()
         {
@@ -47,9 +44,20 @@ namespace AVMT.Gameplay
             availableMoves[(int)direction] = true;
         }
 
+        public void Break()
+        {
+            if (piece == null)
+            {
+                return;
+            }
+
+            DestroyPiece();
+            ClearPiece();
+        }
+
         public void ClearPiece()
         {
-            Destroy(Piece.transform);
+            piece = null;
             ClearAvailableMoves();
         }
 
@@ -58,6 +66,15 @@ namespace AVMT.Gameplay
             availableMoves.Initialize();
         }
 
+        public void DestroyPiece()
+        {
+            if (piece == null)
+            {
+                return;
+            }
+
+            Destroy(Piece.gameObject);
+        }
 
 
         #region Mouse Input Debug

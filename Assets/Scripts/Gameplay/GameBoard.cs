@@ -27,10 +27,32 @@ namespace AVMT.Gameplay
         public Transform BoardPivot => boardPivot;
 
         private BoardSlot[,] slots = new BoardSlot[BoardLenght.x, BoardLenght.y];
-        public BoardSlot[,] Slots { get => slots; }
+        public BoardSlot[,] Slots => slots;
 
-        public List<int> dirtyLines = new List<int>();
-        public List<int> dirtyColumns = new List<int>();
+        //public class BoardSlots
+        //{
+        //    private BoardSlot[,] slots = new BoardSlot[BoardLenght.x, BoardLenght.y];
+        //    private BoardSlot[] setupSlots = new BoardSlot[BoardLenght.x];
+
+        //    public BoardSlot this[int index1, int index2]
+        //    {
+        //        get 
+        //        { 
+        //            if (index2 == BoardLenght.y)
+        //            {
+        //                return setupSlots[index1];
+        //            }
+
+        //            return slots[index1, index2]; 
+        //        }
+        //        set { slots[index1, index2] = value; }
+        //    }
+        //}
+
+        [SerializeField]
+        public HashSet<int> dirtyLines = new HashSet<int>();
+        [SerializeField]
+        public HashSet<int> dirtyColumns = new HashSet<int>();
 
         private void Awake()
         {
@@ -49,11 +71,37 @@ namespace AVMT.Gameplay
                     slots[x, y].index = new Vector2Int(x, y);
                 }
             }
-        } 
+        }
+
+        public bool UpdateAvailableMoves()
+        {
+            bool anyAvailableMove = false;
+            for (int y = 0; y < BoardLenght.y; y++)
+            {
+                for (int x = 0; x < BoardLenght.x; x++)
+                {
+                    Vector2Int currentSlot = new Vector2Int(x, y);
+
+                    foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+                    {
+                        if (GetMatchesInLineAfterMovement(currentSlot, direction, out List<List<int>> lineMatches) ||
+                            GetMatchesInColumnAfterMovement(currentSlot, direction, out List<List<int>> columnMatches))
+                        {
+                            Slots[x, y].SetAvailableMove(direction);
+                            Vector2Int movedSlot = currentSlot + GetDirectionVector(direction);
+                            Slots[movedSlot.x, movedSlot.y].SetAvailableMove(GetOppositeDiretion(direction));
+
+                            anyAvailableMove = true;
+                        }
+                    }
+                }
+            }
+            return anyAvailableMove;
+        }
 
         public bool GetMatchesInColumnAfterMovement(Vector2Int slot, Direction movementDirection, out List<List<int>> matchIndexes) 
         {
-            if (IsValidMovement(slot, movementDirection) == false)
+            if (IsMovementValid(slot, movementDirection) == false)
             {
                 matchIndexes = new List<List<int>>();
                 return false;
@@ -78,7 +126,7 @@ namespace AVMT.Gameplay
 
         public bool GetMatchesInLineAfterMovement(Vector2Int slot, Direction movementDirection, out List<List<int>> matchIndexes)
         {
-            if (IsValidMovement(slot, movementDirection) == false)
+            if (IsMovementValid(slot, movementDirection) == false)
             {
                 matchIndexes = new List<List<int>>();
                 return false;
@@ -152,11 +200,9 @@ namespace AVMT.Gameplay
         #region aux
         private GamePieceType[] GetColumnTypes (int columnIndex)
         {
-            int verticalLenght = slots.GetLength((int)Axis.Vertical);
+            GamePieceType[] column = new GamePieceType[BoardLenght.y];
 
-            GamePieceType[] column = new GamePieceType[verticalLenght];
-
-            for (int i = 0; i < verticalLenght; i++) 
+            for (int i = 0; i < BoardLenght.y; i++) 
             {
                 if(slots[columnIndex, i].Piece == null)
                 {
@@ -171,11 +217,9 @@ namespace AVMT.Gameplay
 
         private GamePieceType[] GetLineTypes(int lineIndex)
         {
-            int horizontalLenght = slots.GetLength((int)Axis.Horizontal);
+            GamePieceType[] line = new GamePieceType[BoardLenght.x];
 
-            GamePieceType[] line = new GamePieceType[horizontalLenght];
-
-            for (int i = 0; i < horizontalLenght; i++)
+            for (int i = 0; i < BoardLenght.x; i++)
             {
                 if (slots[i, lineIndex].Piece == null)
                 {
@@ -186,6 +230,24 @@ namespace AVMT.Gameplay
             }
 
             return line;
+        }
+
+        public void Break(Vector2Int slotIndex)
+        {
+            slots[slotIndex.x, slotIndex.y].Break();
+            SetDirty(slots[slotIndex.x, slotIndex.y]);
+        }
+
+        public void SetDirty(BoardSlot slot)
+        {
+            dirtyColumns.Add(slot.index.x);
+            dirtyLines.Add(slot.index.y);
+        }
+
+        public void ClearDirty()
+        {
+            dirtyColumns.Clear();
+            dirtyLines.Clear();
         }
 
         public static Vector2Int GetDirectionVector (Direction direction)
@@ -229,7 +291,7 @@ namespace AVMT.Gameplay
             return (direction == Direction.Right || direction == Direction.Left) ? Axis.Horizontal : Axis.Vertical;
         }
 
-        private static bool IsValidMovement (Vector2Int slot, Direction movementDirection)
+        private static bool IsMovementValid (Vector2Int slot, Direction movementDirection)
         {
             Vector2Int movedSlot = slot + GetDirectionVector(movementDirection);
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,6 +8,8 @@ namespace AVMT.Gameplay
 {
     public class GamePiecesController : MonoBehaviour
     {
+        private const float FillEmptyDelay = 0.05f;
+
         [SerializeField]
         private GamePieceType[] gamePieces;
 
@@ -17,8 +20,13 @@ namespace AVMT.Gameplay
         private bool inputsAllowed = false;
         public bool InputsAllowed => inputsAllowed;
 
-        public Action<BoardSlot> OnSlotSelected;
-        public Action<GamePiece, BoardSlot> OnPieceMoved;
+        public Action<BoardSlot> onSlotSelected;
+        public Action<GamePiece, BoardSlot> onPieceMoved;
+        public Action<GamePiece, BoardSlot> onAfterPieceMoved;
+        public Action<BoardSlot, BoardSlot> onPiecesSwitched;
+        public Action<BoardSlot, BoardSlot> onAfterPiecesSwitched;
+
+        public Action onEmptySpacesFilled;
 
         private void OnValidate()
         {
@@ -37,11 +45,13 @@ namespace AVMT.Gameplay
             touchController.TouchedDownOnInteractable += OnPieceTouchDown;
             touchController.TouchedUpOnInteractable += OnPieceTouchUp;
 
-            OnPieceMoved += SetDirty;
+            onPiecesSwitched += OnPiecesSwitched;
         }
 
         public void PopulateBoard()
         {
+            ClearBoard();
+
             for (int y = 0; y < GameBoard.BoardLenght.y; y++)
             {
                 for (int x = 0; x < GameBoard.BoardLenght.x; x++)
@@ -69,55 +79,112 @@ namespace AVMT.Gameplay
             }
         }
 
-        public bool UpdateAvailableMoves()
+        private void ClearBoard()
         {
-            bool anyAvailableMove = false;
             for (int y = 0; y < GameBoard.BoardLenght.y; y++)
             {
                 for (int x = 0; x < GameBoard.BoardLenght.x; x++)
                 {
-                    Vector2Int currentSlot = new Vector2Int(x, y);
-
-                    foreach (Direction direction in Enum.GetValues(typeof(Direction)))
-                    {
-                        if (gameBoard.GetMatchesInLineAfterMovement(currentSlot, direction, out List<List<int>> lineMatches) ||
-                            gameBoard.GetMatchesInColumnAfterMovement(currentSlot, direction, out List<List<int>> columnMatches))
-                        {
-                            gameBoard.Slots[x, y].SetAvailableMove(direction);
-                            Vector2Int movedSlot = currentSlot + GameBoard.GetDirectionVector(direction);
-                            gameBoard.Slots[movedSlot.x, movedSlot.y].SetAvailableMove(GameBoard.GetOppositeDiretion(direction));
-
-                            anyAvailableMove = true;
-                        }
-                    }
+                    gameBoard.Slots[x, y].DestroyPiece();
                 }
             }
-            return anyAvailableMove;
+        }
+
+        public bool UpdateAvailableMoves()
+        {
+            gameBoard.ClearDirty();
+            return gameBoard.UpdateAvailableMoves();
+        }
+
+        private void OnPiecesSwitched(BoardSlot from, BoardSlot to)
+        {
+            onAfterPiecesSwitched?.Invoke(from, to);
         }
 
         public bool ResolveMatches()
         {
             bool matchesResolved = false;
+            HashSet<Vector2Int> matchIndexes = new HashSet<Vector2Int>();
 
-            for (int y = 0; y < gameBoard.dirtyLines.Count; y++)
+            foreach (int dirtyLine in gameBoard.dirtyLines)
             {
-                for (int x = 0; x < gameBoard.dirtyColumns.Count; x++)
+                if (gameBoard.GetMatchesInLine(dirtyLine, out List<List<int>> lineMatches))
                 {
-                    if (gameBoard.GetMatchesInColumn(x, out List<List<int>> columnMatches) ||
-                        gameBoard.GetMatchesInLine(y, out List<List<int>> lineMatches))
-                    { 
-                        //Get matches and break pieces
-                        //matchesResolved = true;                    
+                    foreach (List<int> lineMatch in lineMatches)
+                    {
+                        foreach (int column in lineMatch)
+                        {
+                            matchIndexes.Add(new Vector2Int(column, dirtyLine));
+                        }
                     }
-                }
+                    matchesResolved = true;
+                }                
             }
+            foreach (int dirtyColumn in gameBoard.dirtyColumns)
+            {
+                if (gameBoard.GetMatchesInColumn(dirtyColumn, out List<List<int>> columnMatches))
+                {
+                    foreach (List<int> columnMatch in columnMatches)
+                    {
+                        foreach (int line in columnMatch)
+                        {
+                            matchIndexes.Add(new Vector2Int(dirtyColumn, line));
+                        }
+                    }
+                    matchesResolved = true;
+                } 
+            }
+
+            foreach(Vector2Int matchIndex in matchIndexes)
+            {
+                gameBoard.Break(matchIndex);
+            }
+
             return matchesResolved;
         }
 
-        private void SetDirty(GamePiece piece, BoardSlot slot)
+        public void FillEmptySpaces() 
         {
-            gameBoard.dirtyColumns.Add(slot.index.x);
-            gameBoard.dirtyLines.Add(slot.index.y);
+            StartCoroutine(FillEmptySpacesLoop());
+        }
+
+        private IEnumerator FillEmptySpacesLoop()
+        {
+            for (int y = gameBoard.dirtyLines.Min(); y < GameBoard.BoardLenght.y; y++)
+            {                
+                foreach (int x in gameBoard.dirtyColumns)
+                {
+                    if (gameBoard.Slots[x, y].Piece == null)
+                    {
+                        BoardSlot occupiedSlot = GetFirstOccupiedSlotUpwards(y, x);
+
+                        if (occupiedSlot == null)
+                        { 
+                            CreatePiece(GetRandomPieceType(), gameBoard.Slots[x, y]);
+                        }
+                        else
+                        {
+                            TryMovePiece(occupiedSlot, gameBoard.Slots[x, y]);
+                        }
+                    }
+                }
+                yield return new WaitForSeconds(FillEmptyDelay);
+                
+            }
+            onEmptySpacesFilled?.Invoke();
+        }
+
+        private BoardSlot GetFirstOccupiedSlotUpwards(int lineFrom, int column)
+        {
+            for (int line = lineFrom; line < GameBoard.BoardLenght.y; line++)
+            {
+                if (gameBoard.Slots[column, line].Piece == null)
+                {
+                    continue;
+                }
+                return gameBoard.Slots[column, line];
+            }
+            return null;
         }
 
         private GamePieceType GetRandomPieceType()
@@ -131,7 +198,6 @@ namespace AVMT.Gameplay
             return availablePieces.ElementAt(UnityEngine.Random.Range(0, availablePieces.Count()));
         }
 
-
         private GameObject CreatePiece(GamePieceType type, BoardSlot slotParent)
         {
             if (slotParent.Piece != null)
@@ -141,9 +207,11 @@ namespace AVMT.Gameplay
 
             GameObject piece = Instantiate(type.Prefab, slotParent.transform);
             slotParent.Piece = piece.GetComponent<GamePiece>();
+
+            gameBoard.SetDirty(slotParent);
+
             return piece;
         }
-
 
         #region Inputs
         BoardSlot preSelectedSlot = null;
@@ -215,27 +283,51 @@ namespace AVMT.Gameplay
             selectedSlot = null;
         }
 
-        private bool TrySwitchPieces(BoardSlot origin, BoardSlot target) 
+        private bool TryMovePiece(BoardSlot from, BoardSlot to)
         {
-            Vector2Int movementDelta = target.index - origin.index;
+            if (from.Piece == null)
+            {
+                return false;
+            }
+            GamePiece fromPiece = from.Piece;
+            from.ClearPiece();
+
+            return MovePiece(fromPiece, to);
+        }
+
+        private bool MovePiece(GamePiece from, BoardSlot to) 
+        {
+            to.Piece = from;            
+            onPieceMoved?.Invoke(from, to);
+
+            gameBoard.SetDirty(to);
+
+            return true;
+        }
+
+        private bool TrySwitchPieces(BoardSlot slot1, BoardSlot slot2) 
+        {
+            Vector2Int movementDelta = slot2.index - slot1.index;
             
             if (movementDelta.magnitude > 1)
             {
                 return false;
             }
 
-            if (origin.GetAvailableMove(GameBoard.GetDirectionFromVector(movementDelta)) == false)
+            if (slot1.GetAvailableMove(GameBoard.GetDirectionFromVector(movementDelta)) == false)
             {
                 return false;
             }
             
-            GamePiece originPiece = origin.Piece;
-            GamePiece targetPiece = target.Piece;
+            GamePiece piece1 = slot1.Piece;
+            GamePiece piece2 = slot2.Piece;
 
-            origin.Piece = targetPiece;
-            OnPieceMoved?.Invoke(originPiece, origin);
-            target.Piece = originPiece;
-            OnPieceMoved?.Invoke(targetPiece, target);
+            if (!MovePiece(piece1, slot2) || !MovePiece(piece2, slot1))
+            {
+                return false;
+            }
+
+            onPiecesSwitched?.Invoke(slot1, slot2);
 
             return true;
         }
