@@ -66,8 +66,10 @@
     <Compile Include="Assets\Scripts\UI\StretchSprite.cs" />
     <Compile Include="Assets\Scripts\ScriptableObjects\GamePieceType.cs" />
     <Compile Include="Assets\Scripts\Gameplay\TouchController.cs" />
-    <Compile Include="Assets\Scripts\Menu\GameModeButton.cs" />
     <Compile Include="Assets\Scripts\Gameplay\RoundManager.cs" />
+    <Compile Include="Assets\Scripts\Menu\GameModeButton.cs" />
+    <Compile Include="Assets\Scripts\UI\PointsBarManager.cs" />
+    <Compile Include="Assets\GameplayAudio.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Audio\Music\Attribution.txt" />

@@ -63,7 +63,7 @@ namespace AVMT.Gameplay
 
         public void ClearAvailableMoves()
         {
-            availableMoves.Initialize();
+            availableMoves = new bool[4];
         }
 
         public void DestroyPiece()

@@ -75,6 +75,8 @@ namespace AVMT.Gameplay
 
         public bool UpdateAvailableMoves()
         {
+            ClearAllAvailableMoves();
+
             bool anyAvailableMove = false;
             for (int y = 0; y < BoardLenght.y; y++)
             {
@@ -87,7 +89,7 @@ namespace AVMT.Gameplay
                         if (GetMatchesInLineAfterMovement(currentSlot, direction, out List<List<int>> lineMatches) ||
                             GetMatchesInColumnAfterMovement(currentSlot, direction, out List<List<int>> columnMatches))
                         {
-                            Slots[x, y].SetAvailableMove(direction);
+                            Slots[currentSlot.x, currentSlot.y].SetAvailableMove(direction);
                             Vector2Int movedSlot = currentSlot + GetDirectionVector(direction);
                             Slots[movedSlot.x, movedSlot.y].SetAvailableMove(GetOppositeDiretion(direction));
 
@@ -97,6 +99,17 @@ namespace AVMT.Gameplay
                 }
             }
             return anyAvailableMove;
+        }
+
+        private void ClearAllAvailableMoves()
+        {
+            for (int y = 0; y < BoardLenght.y; y++)
+            {
+                for (int x = 0; x < BoardLenght.x; x++)
+                {
+                    Slots[x, y].ClearAvailableMoves();
+                }
+            }
         }
 
         public bool GetMatchesInColumnAfterMovement(Vector2Int slot, Direction movementDirection, out List<List<int>> matchIndexes) 
@@ -232,10 +245,10 @@ namespace AVMT.Gameplay
             return line;
         }
 
-        public void Break(Vector2Int slotIndex)
+        public void Break(BoardSlot slot)
         {
-            slots[slotIndex.x, slotIndex.y].Break();
-            SetDirty(slots[slotIndex.x, slotIndex.y]);
+            slot.Break();
+            SetDirty(slot);
         }
 
         public void SetDirty(BoardSlot slot)

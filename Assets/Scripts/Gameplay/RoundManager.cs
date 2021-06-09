@@ -2,19 +2,46 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace AVMT.Gameplay
 {
     public class RoundManager : MonoBehaviour
     {
-        private int currentRound = 0;
-        public int CurrentRound => currentRound;
+        private static RoundManager rm;
+        public static RoundManager Instance => rm;
 
         private RoundState currentState = new RoundState(true);
         public RoundState CurrentState => currentState;
 
+        private int round = 0;
+        public int CurrentRound => round;
+
+        private TimeSpan span;
+
+        private float timer = 0f;
+        public float CurrentTime => timer;
+
+        private int points = 0;
+        public int CurrentPoints => points;
+
         [SerializeField]
         private GamePiecesController piecesController;
+        public GamePiecesController PiecesController => piecesController;
+
+        [SerializeField]
+        private int initialRoundPointsTarget = 100;
+        [SerializeField]
+        private int roundPointsTargetIncreaseAmount = 20;
+
+        [SerializeField]
+        private int roundPointsTarget { get => initialRoundPointsTarget + (roundPointsTargetIncreaseAmount * round); }
+        public int CurrentRoundPointsTarget => roundPointsTarget;
+
+        private static int MatchThreeBasePoints = 5;
+        private static int MatchThreeExtraPoints = 2;
+
+        public Action onPointsAdded;
 
         private void OnValidate()
         {
@@ -26,10 +53,19 @@ namespace AVMT.Gameplay
             piecesController = FindObjectOfType<GamePiecesController>();
         }
 
+        private void Awake()
+        {
+            if (rm == null)
+            {
+                rm = this;
+            }
+        }
+
         private void Start()
         {
             ChangeState(new RoundState(RoundState.State.RoundSetup, RoundSetup, OnRoundSetupCompleted));
         }
+
         private void ChangeState (RoundState state)
         {
             if (currentState.Equals(state) && currentState.Completed == false)
@@ -49,7 +85,43 @@ namespace AVMT.Gameplay
         {
             yield return new WaitForSeconds(delay);
 
-            currentState.Completed = true;
+            if (CheckCompletion())
+            {
+                //end round
+            }
+            else
+            {
+                currentState.Completed = true;
+            }
+        }
+
+        private bool CheckCompletion()
+        {
+            bool anyCompletion = false;
+
+            if (points >= roundPointsTarget) 
+            {
+                //anyCompletion = true;
+            }
+
+            return anyCompletion;
+        }
+        private void OnMatchesFound(List<int> matchLenghts)
+        {
+            int points = 0;
+            foreach(int matchLenght in matchLenghts)
+            {
+                points += MatchThreeBasePoints;                
+                points += (matchLenght - 3) * MatchThreeExtraPoints;
+            }
+
+            AddPoints(points);
+        }
+
+        private void AddPoints(int amount)
+        {
+            points += amount;
+            onPointsAdded?.Invoke();
         }
 
         #region RoundSetup
@@ -57,6 +129,7 @@ namespace AVMT.Gameplay
         private void RoundSetup()
         {
             piecesController.PopulateBoard();
+            piecesController.onMatchesFound += OnMatchesFound;
             CompleteCurrentState();
         }
 
@@ -65,6 +138,7 @@ namespace AVMT.Gameplay
             RoundState nextState;
             if (piecesController.UpdateAvailableMoves())
             {
+
                 nextState = new RoundState(RoundState.State.EvaluateRemainingMatches, EvaluateRemainingMatches, OnEvaluateRemainingMatchesCompleted);
             }
             else
@@ -104,7 +178,7 @@ namespace AVMT.Gameplay
         private void AwaitInput()
         {
             piecesController.SetInputsAllowed(true);
-            piecesController.onAfterPiecesSwitched += OnAfterPiecesSwitched;
+            piecesController.onPiecesSwitched += OnAfterPiecesSwitched;
         }
 
         private void OnAfterPiecesSwitched(BoardSlot from, BoardSlot to)
@@ -117,7 +191,7 @@ namespace AVMT.Gameplay
         private void OnAwaitInputCompleted() 
         {
             piecesController.SetInputsAllowed(false);
-            piecesController.onAfterPiecesSwitched -= OnAfterPiecesSwitched;
+            piecesController.onPiecesSwitched -= OnAfterPiecesSwitched;
 
             ChangeState(new RoundState(RoundState.State.ResolveMatches, ResolveMatches, OnResolveMatchesCompleted));
         }
@@ -173,7 +247,7 @@ namespace AVMT.Gameplay
     [Serializable]
     public struct RoundState
     {
-        public enum State { RoundSetup, EvaluateRemainingMatches, AwaitInput, ResolveMatches, FillEmptySlots }
+        public enum State { RoundSetup, EvaluateRemainingMatches, AwaitInput, ResolveMatches, FillEmptySlots, RoundEnd}
 
         public State state;
 

@@ -21,10 +21,14 @@ namespace AVMT.Gameplay
         public bool InputsAllowed => inputsAllowed;
 
         public Action<BoardSlot> onSlotSelected;
+
         public Action<GamePiece, BoardSlot> onPieceMoved;
-        public Action<GamePiece, BoardSlot> onAfterPieceMoved;
+
         public Action<BoardSlot, BoardSlot> onPiecesSwitched;
-        public Action<BoardSlot, BoardSlot> onAfterPiecesSwitched;
+
+        public Action<GamePiece> onPieceBroken;
+
+        public Action<List<int>> onMatchesFound;
 
         public Action onEmptySpacesFilled;
 
@@ -44,8 +48,6 @@ namespace AVMT.Gameplay
 
             touchController.TouchedDownOnInteractable += OnPieceTouchDown;
             touchController.TouchedUpOnInteractable += OnPieceTouchUp;
-
-            onPiecesSwitched += OnPiecesSwitched;
         }
 
         public void PopulateBoard()
@@ -96,15 +98,11 @@ namespace AVMT.Gameplay
             return gameBoard.UpdateAvailableMoves();
         }
 
-        private void OnPiecesSwitched(BoardSlot from, BoardSlot to)
-        {
-            onAfterPiecesSwitched?.Invoke(from, to);
-        }
-
         public bool ResolveMatches()
         {
             bool matchesResolved = false;
             HashSet<Vector2Int> matchIndexes = new HashSet<Vector2Int>();
+            List<int> foundMatchesLenght = new List<int>();
 
             foreach (int dirtyLine in gameBoard.dirtyLines)
             {
@@ -116,6 +114,7 @@ namespace AVMT.Gameplay
                         {
                             matchIndexes.Add(new Vector2Int(column, dirtyLine));
                         }
+                        foundMatchesLenght.Add(lineMatch.Count);
                     }
                     matchesResolved = true;
                 }                
@@ -130,6 +129,7 @@ namespace AVMT.Gameplay
                         {
                             matchIndexes.Add(new Vector2Int(dirtyColumn, line));
                         }
+                        foundMatchesLenght.Add(columnMatch.Count);
                     }
                     matchesResolved = true;
                 } 
@@ -137,7 +137,13 @@ namespace AVMT.Gameplay
 
             foreach(Vector2Int matchIndex in matchIndexes)
             {
-                gameBoard.Break(matchIndex);
+                onPieceBroken?.Invoke(gameBoard.Slots[matchIndex.x, matchIndex.y].Piece);
+                gameBoard.Break(gameBoard.Slots[matchIndex.x, matchIndex.y]);                
+            }
+
+            if (matchesResolved)
+            {
+                onMatchesFound?.Invoke(foundMatchesLenght);
             }
 
             return matchesResolved;
@@ -274,6 +280,7 @@ namespace AVMT.Gameplay
             }
 
             selectedSlot = slot;
+            onSlotSelected?.Invoke(slot);
             slot.Select();
         }
 
