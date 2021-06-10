@@ -23,7 +23,7 @@ namespace AVMT.Gameplay
         private GameplayTimer timer;
         public float RemainingTime => timer.RemainingTime;
 
-        public static int RoundTimeLimit = 5; //120;
+        public static int RoundTimeLimit = 120;
 
         private int points = 0;
         public int CurrentPoints => points;
