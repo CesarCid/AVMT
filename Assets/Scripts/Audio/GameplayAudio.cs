@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,15 +7,35 @@ namespace AVMT.Gameplay
 {
     public class GameplayAudio : MonoBehaviour
     {
+        [Serializable]
+        public class Audio 
+        {
+            public AudioClip audioClip;
+            public float volume;
+        }
+
         private RoundManager roundManager;
         private GamePiecesController piecesController;
 
         [SerializeField]
-        private AudioClip switchedAudio;
+        private AudioSource source;
+
         [SerializeField]
-        private AudioClip selectedAudio;
+        private Audio switchedAudio;
         [SerializeField]
-        private AudioClip clearedAudio;
+        private Audio selectedAudio;
+        [SerializeField]
+        private Audio clearedAudio;
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (source == null)
+            {
+                source = GetComponentInChildren<AudioSource>();
+            }
+        }
+#endif
 
         private void Start()
         {
@@ -26,21 +47,26 @@ namespace AVMT.Gameplay
             piecesController.onSlotSelected += (slot) => PlaySelected();            
         }
 
+        private void PlayOneShot(Audio audio)
+        {
+            source.PlayOneShot(audio.audioClip, audio.volume);
+        }
+
         private void PlaySwitched()
         {
-            AudioSource.PlayClipAtPoint(switchedAudio, Vector3.zero);
+            PlayOneShot(switchedAudio);
         }
 
         private void PlaySelected()
         {
-            AudioSource.PlayClipAtPoint(selectedAudio, Vector3.zero);
+            PlayOneShot(selectedAudio);            
         }
 
         private void OnRoundFinished(bool success)
         {
             if (success)
             {
-                AudioSource.PlayClipAtPoint(clearedAudio, Vector3.zero);
+                PlayOneShot(clearedAudio);
             }
         }
     }
