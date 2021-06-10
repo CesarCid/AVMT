@@ -49,7 +49,7 @@ namespace AVMT.Gameplay
         private void UpdateText()
         {
             string minutes = Mathf.FloorToInt(timer.RemainingTime / 60).ToString();
-            string seconds = Mathf.FloorToInt(timer.RemainingTime % 60).ToString("D2");
+            string seconds = Mathf.Max(Mathf.FloorToInt(timer.RemainingTime % 60), 0).ToString("D2");
 
             if (timer.RemainingTime < 60)
             {

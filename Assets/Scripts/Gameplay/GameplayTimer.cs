@@ -30,8 +30,8 @@ namespace AVMT.Gameplay
             {
                 if (remainingTime <= 0)
                 {
-                    StopTimer();
                     onTimerEnd?.Invoke();
+                    StopTimer();
                 }
                 
                 remainingTime -= Time.deltaTime;
@@ -52,7 +52,6 @@ namespace AVMT.Gameplay
 
         public void StopTimer()
         {
-            remainingTime = 0;
             timerOn = false;            
         }
     }
