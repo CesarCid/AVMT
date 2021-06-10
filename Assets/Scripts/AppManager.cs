@@ -42,9 +42,23 @@ namespace AVMT
             activeMode = mode;
         }
 
+        public void ReloadMode()
+        {
+            if (activeMode == null)
+            {
+                return;
+            }
+
+            var modeToReload = activeMode;
+
+            UnloadMode(modeToReload);
+            LoadMode(modeToReload);
+        }
+
         private void UnloadMode(GameMode mode)
         {
             UnloadScene(mode.Scene);
+            activeMode = null;
         }
 
         private void LoadScene(Scenes scene)

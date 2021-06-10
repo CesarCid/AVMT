@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace AVMT.Gameplay
 {
-    public class PointsBarManager : MonoBehaviour
+    public class UIPointsBarManager : MonoBehaviour
     {
         [SerializeField]
         private Text pointsText;
@@ -20,6 +20,7 @@ namespace AVMT.Gameplay
             roundManager = RoundManager.Instance;
 
             roundManager.onPointsAdded += UpdatePointsBar;
+            roundManager.onRoundStarted += (i) => UpdatePointsBar();
         }
 
         public void UpdatePointsBar()

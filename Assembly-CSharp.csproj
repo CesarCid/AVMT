@@ -57,19 +57,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\AppManager.cs" />
+    <Compile Include="Assets\Scripts\UI\UIOverlay.cs" />
     <Compile Include="Assets\Scripts\Gameplay\GameBoard.cs" />
     <Compile Include="Assets\Scripts\ScriptableObjects\GameMode.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\GameplayTimer.cs" />
+    <Compile Include="Assets\Scripts\UI\UIRoundManager.cs" />
+    <Compile Include="Assets\Scripts\UI\UITimerManager.cs" />
+    <Compile Include="Assets\Scripts\UI\UIPointsBarManager.cs" />
     <Compile Include="Assets\Scripts\Gameplay\GamePiece.cs" />
     <Compile Include="Assets\Scripts\Gameplay\GamePiecesController.cs" />
     <Compile Include="Assets\Scripts\Gameplay\BoardSlot.cs" />
     <Compile Include="Assets\Scripts\InputManager.cs" />
     <Compile Include="Assets\Scripts\UI\StretchSprite.cs" />
     <Compile Include="Assets\Scripts\ScriptableObjects\GamePieceType.cs" />
+    <Compile Include="Assets\Scripts\Audio\GameplayAudio.cs" />
     <Compile Include="Assets\Scripts\Gameplay\TouchController.cs" />
     <Compile Include="Assets\Scripts\Gameplay\RoundManager.cs" />
     <Compile Include="Assets\Scripts\Menu\GameModeButton.cs" />
-    <Compile Include="Assets\Scripts\UI\PointsBarManager.cs" />
-    <Compile Include="Assets\GameplayAudio.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Audio\Music\Attribution.txt" />

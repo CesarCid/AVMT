@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1705921704310772559}
   - component: {fileID: 649248585367449923}
   - component: {fileID: 1705921704310772556}
+  - component: {fileID: 253256577115074012}
   m_Layer: 0
   m_Name: Gameplay
   m_TagString: Untagged
@@ -44,7 +45,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52763a0a4f7181d4faf6211e3ee9a796, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  timer: {fileID: 0}
   piecesController: {fileID: 0}
+  initialRoundPointsTarget: 100
+  roundPointsTargetIncreaseAmount: 20
 --- !u!114 &1705921704310772556
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66,3 +70,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4d6c40ab237c0f24aa99a92a63b9950d, type: 2}
   - {fileID: 11400000, guid: 7c8a37a63e43c2748b0a6f488eb77755, type: 2}
   gameBoard: {fileID: 0}
+--- !u!114 &253256577115074012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1705921704310772557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c2d3bd1c2a946942ba227b4b64a9641, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -13,5 +13,10 @@ namespace AVMT
         {
             AppManager.Instance.LoadMode(gameMode);
         }
+
+        public void ReloadGameMode()
+        {
+            AppManager.Instance.ReloadMode();
+        }
     }
 }

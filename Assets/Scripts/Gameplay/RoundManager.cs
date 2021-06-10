@@ -14,13 +14,16 @@ namespace AVMT.Gameplay
         private RoundState currentState = new RoundState(true);
         public RoundState CurrentState => currentState;
 
+        private Coroutine completeStateCoroutine = null;
+
         private int round = 0;
         public int CurrentRound => round;
 
-        private TimeSpan span;
+        [SerializeField]
+        private GameplayTimer timer;
+        public float RemainingTime => timer.RemainingTime;
 
-        private float timer = 0f;
-        public float CurrentTime => timer;
+        public static int RoundTimeLimit = 5; //120;
 
         private int points = 0;
         public int CurrentPoints => points;
@@ -41,6 +44,8 @@ namespace AVMT.Gameplay
         private static int MatchThreeBasePoints = 5;
         private static int MatchThreeExtraPoints = 2;
 
+        public Action<int> onRoundStarted;
+        public Action<bool> onRoundFinished;
         public Action onPointsAdded;
 
         private void OnValidate()
@@ -51,6 +56,7 @@ namespace AVMT.Gameplay
             }
 
             piecesController = FindObjectOfType<GamePiecesController>();
+            timer = FindObjectOfType<GameplayTimer>();
         }
 
         private void Awake()
@@ -63,12 +69,15 @@ namespace AVMT.Gameplay
 
         private void Start()
         {
+            piecesController.onMatchesFound += OnMatchesFound;
+            timer.onTimerEnd += OnTimerEnd;
+
             ChangeState(new RoundState(RoundState.State.RoundSetup, RoundSetup, OnRoundSetupCompleted));
         }
 
-        private void ChangeState (RoundState state)
+        private void ChangeState (RoundState state, bool forced = false)
         {
-            if (currentState.Equals(state) && currentState.Completed == false)
+            if (currentState.Equals(state) && currentState.Completed == false && forced == false)
             {
                 return;
             }
@@ -78,34 +87,80 @@ namespace AVMT.Gameplay
         }
         private void CompleteCurrentState(float delay = 0f)
         {
-            StartCoroutine(CompleteCurrentStateDelayed(delay));
+            completeStateCoroutine = StartCoroutine(CompleteCurrentStateDelayed(delay));
         }
 
         private IEnumerator CompleteCurrentStateDelayed(float delay)
         {
             yield return new WaitForSeconds(delay);
 
-            if (CheckCompletion())
-            {
-                //end round
-            }
-            else
+            if (CheckRoundCompletion() == false)
             {
                 currentState.Completed = true;
-            }
+            }           
+
+            completeStateCoroutine = null;
         }
 
-        private bool CheckCompletion()
+        #region Completion
+        private bool CheckRoundCompletion()
         {
             bool anyCompletion = false;
 
-            if (points >= roundPointsTarget) 
+            if (CheckTimeCompletion())
             {
-                //anyCompletion = true;
+                EndRound(false);
+                anyCompletion = true;
             }
+
+            if (CheckPointsCompletion()) 
+            {
+                EndRound(true);
+                anyCompletion = true;
+            }           
 
             return anyCompletion;
         }
+
+        private bool CheckPointsCompletion()
+        {
+            return points >= roundPointsTarget;
+        }
+        private bool CheckTimeCompletion()
+        {
+            return RemainingTime <= 0;
+        }
+        
+        private void OnTimerEnd() 
+        {
+            if (completeStateCoroutine != null)
+            {
+                StopCoroutine(completeStateCoroutine);
+            }
+
+            CheckRoundCompletion();
+        }
+
+        private void EndRound(bool success)
+        {
+            piecesController.SetInputsAllowed(false);
+            onRoundFinished?.Invoke(success);
+
+            if (success)
+            {
+                NextRound();
+            }
+        }
+
+        private void NextRound()
+        {
+            round++;
+            points = 0;
+            ChangeState(new RoundState(RoundState.State.RoundSetup, RoundSetup, OnRoundSetupCompleted), true);
+        }
+        #endregion
+
+        #region Points
         private void OnMatchesFound(List<int> matchLenghts)
         {
             int points = 0;
@@ -123,13 +178,13 @@ namespace AVMT.Gameplay
             points += amount;
             onPointsAdded?.Invoke();
         }
+        #endregion
 
         #region RoundSetup
 
         private void RoundSetup()
         {
             piecesController.PopulateBoard();
-            piecesController.onMatchesFound += OnMatchesFound;
             CompleteCurrentState();
         }
 
@@ -138,7 +193,7 @@ namespace AVMT.Gameplay
             RoundState nextState;
             if (piecesController.UpdateAvailableMoves())
             {
-
+                onRoundStarted?.Invoke(round);
                 nextState = new RoundState(RoundState.State.EvaluateRemainingMatches, EvaluateRemainingMatches, OnEvaluateRemainingMatchesCompleted);
             }
             else
